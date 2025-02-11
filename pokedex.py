@@ -15,8 +15,6 @@ unDictionnairePokemon_chargee = {
 with open('dictionnairepokemon.pkl', 'ab') as f:
     pickle.dump(unDictionnairePokemon_chargee, f)
 
-liste_objet=[]
-
 list_type = [   "Normal",
                 "Feu",
                 "Eau",
@@ -62,14 +60,17 @@ def sauvegarder_image(filename):
 
 def ajouter_pokemon():
 
+    with open('dictionnairepokemon.pkl', 'rb') as f:
+        unDictionnairePokemon_chargee = pickle.load(f)
+
     id = uneListeBoxPokemon.size()+1
     nom = unInputNom.get()
     type = uneComboboxType.get()
     taille = unInputTaille.get()
     poid = unInputPoid.get()
     description = unTextAreaInfo.get("1.0",tk.END)
-    image = sauvegarder_image(unLabelInputImage.get())
-    print(image)
+    print(unLabelInputImage.cget("text"))
+    image = sauvegarder_image(unLabelInputImage.cget("text"))
 
     if(nom=="" or type =="" or taille=="" or poid=="" or description=="" or image==""  or type==""):
         tkm.showerror(title="Information manquante" , message="Merci de remplir tout les champs pour ajouter un Pokemon au Pokedex")
@@ -77,34 +78,36 @@ def ajouter_pokemon():
     else:
 
         try:
-            taille = float(taille)
-            poid = float(poid)
 
-            creer_pokemon = Pokemon(id,nom,type,taille,poid,description,image)
-            print(creer_pokemon)
-            liste_objet.append(creer_pokemon)
-            uneListeBoxPokemon.insert(tk.END,f"{creer_pokemon.id} - {creer_pokemon.nom}")
+            if nom in unDictionnairePokemon_chargee:
+                tkm.showerror(title="Pokemon déjà présent !", message="Ce Pokemon est déjà présent, doublon impossible !")
+            else:
+                taille = float(taille)
+                poid = float(poid)
 
-            # Ajouter un nouvel objet et réécrire le fichier
-            with open('dictionnairepokemon.pkl', 'rb') as f:
-                unDictionnairePokemon_chargee = pickle.load(f)
+                creer_pokemon = Pokemon(id,nom,type,taille,poid,description,image)
+                uneListeBoxPokemon.insert(tk.END,f"{creer_pokemon.nom}")
 
-            # Ajouter un nouvel objet
-            unDictionnairePokemon_chargee[id] = creer_pokemon
+                # Ajouter un nouvel objet et réécrire le fichier
+                with open('dictionnairepokemon.pkl', 'rb') as f:
+                    unDictionnairePokemon_chargee = pickle.load(f)
 
-            # Sérialiser à nouveau avec le nouvel objet
-            with open('dictionnairepokemon.pkl', 'wb') as f:
-                pickle.dump(unDictionnairePokemon_chargee, f)
+                # Ajouter un nouvel objet
+                unDictionnairePokemon_chargee[nom] = creer_pokemon
+
+                # Sérialiser à nouveau avec le nouvel objet
+                with open('dictionnairepokemon.pkl', 'wb') as f:
+                    pickle.dump(unDictionnairePokemon_chargee, f)
 
 
-            tkm.showinfo(title="Pokemon ajouté !" , message="Pokemon ajouté avec succès ! ")
+                tkm.showinfo(title="Pokemon ajouté !" , message="Pokemon ajouté avec succès ! ")
 
-            unInputNom.delete(0,tk.END)
-            uneComboboxType.set("")
-            unInputPoid.delete(0,tk.END)
-            unInputTaille.delete(0,tk.END)
-            unTextAreaInfo.delete("1.0",tk.END)
-            unLabelInputImage.config(text="")
+                unInputNom.delete(0,tk.END)
+                uneComboboxType.set("")
+                unInputPoid.delete(0,tk.END)
+                unInputTaille.delete(0,tk.END)
+                unTextAreaInfo.delete("1.0",tk.END)
+                unLabelInputImage.config(text="")
 
         except ValueError:
             tkm.showerror(title="Erreur de type" , message="La taille et le poid doivent etre des nombres à virgule !")
@@ -112,19 +115,22 @@ def ajouter_pokemon():
 def supprimer_pokemon():
 
     indice = uneListeBoxPokemon.curselection()
-    key = int(indice[0])+1
-    print(key)
+    key = uneListeBoxPokemon.get(uneListeBoxPokemon.curselection())
 
     # Charger l'objet sérialisé
     with open('dictionnairepokemon.pkl', 'rb') as f:
         unDictionnairePokemon_chargee = pickle.load(f)
 
+    print(unDictionnairePokemon_chargee)
+    print(unDictionnairePokemon_chargee[key])
+
     # Suppression d'un élément (par exemple, la clé 'key_to_delete')
     if key in unDictionnairePokemon_chargee:
-        print(unDictionnairePokemon_chargee[key].nom)
+        print("SI")
         del unDictionnairePokemon_chargee[key]
         uneListeBoxPokemon.delete(indice[0],indice[0])
-        del liste_objet[indice[0]]
+    else:
+        print("ELSE")
 
     # Enregistrer l'objet modifié
     with open('dictionnairepokemon.pkl', 'wb') as f:
@@ -140,19 +146,21 @@ def remplir_listbox():
             unDictionnairePokemon_chargee = pickle.load(f)
 
         for i,items in unDictionnairePokemon_chargee.items():
-            liste_objet.append(items)
-            uneListeBoxPokemon.insert(tk.END,f"{items.id} - {items.nom}") 
+            uneListeBoxPokemon.insert(tk.END,f"{items.nom}") 
 
 def afficher_info_pokemon(event):
 
-    indice = uneListeBoxPokemon.curselection()
+    key = uneListeBoxPokemon.get(uneListeBoxPokemon.curselection())
 
-    unLabelNom.config(text=f"Nom : {liste_objet[indice[0]].nom}")
-    unLabelType.config(text=f"Type : {liste_objet[indice[0]].type}")
-    unLabelTaille.config(text=f"Taille en m : {liste_objet[indice[0]].taille}")
-    unLabelPoid.config(text=f"Poids en kg : {liste_objet[indice[0]].poid}")
-    unLabelInfo.config(text=f"Description : {liste_objet[indice[0]].description}")
-    imagePokemon = Image.open(liste_objet[indice[0]].UrlImage)
+    with open('dictionnairepokemon.pkl', 'rb') as f:
+        unDictionnairePokemon_chargee = pickle.load(f)
+
+    unLabelNom.config(text=f"Nom : {unDictionnairePokemon_chargee[key].nom}")
+    unLabelType.config(text=f"Type : {unDictionnairePokemon_chargee[key].type}")
+    unLabelTaille.config(text=f"Taille en m : {unDictionnairePokemon_chargee[key].taille}")
+    unLabelPoid.config(text=f"Poids en kg : {unDictionnairePokemon_chargee[key].poid}")
+    unLabelInfo.config(text=f"Description : {unDictionnairePokemon_chargee[key].description}")
+    imagePokemon = Image.open(unDictionnairePokemon_chargee[key].UrlImage)
     imagePokemonResized = imagePokemon.resize((300,300))
     imageTk = ImageTk.PhotoImage(imagePokemonResized)
     unLabelImage.config(image=imageTk)
@@ -261,6 +269,5 @@ unLabelPoid = tk.Label(uneFrameInfoText, text="Poids : ???")
 unLabelPoid.grid(row=3, column=1,padx=5, pady=5)
 unLabelInfo = tk.Label(uneFrameInfoText, text="Description : ???",wraplength=200)
 unLabelInfo.grid(row=4, column=1,padx=5, pady=5)
-
 
 unPokedex.mainloop()
