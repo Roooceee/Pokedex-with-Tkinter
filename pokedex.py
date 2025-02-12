@@ -3,7 +3,6 @@ import shutil,os
 import tkinter.messagebox as tkm
 import pickle
 
-from utils import center_window
 from PIL import Image, ImageTk
 from class_pokemon import Pokemon
 from tkinter import ttk
@@ -76,66 +75,60 @@ def ajouter_pokemon():
         tkm.showerror(title="Information manquante" , message="Merci de remplir tout les champs pour ajouter un Pokemon au Pokedex")
 
     else:
+            
+            try:
 
-        try:
+                if nom in unDictionnairePokemon_chargee:
+                    tkm.showerror(title="Pokemon déjà présent !", message="Ce Pokemon est déjà présent, doublon impossible !")
+                else:
+                    taille = float(taille)
+                    poid = float(poid)
 
-            if nom in unDictionnairePokemon_chargee:
-                tkm.showerror(title="Pokemon déjà présent !", message="Ce Pokemon est déjà présent, doublon impossible !")
-            else:
-                taille = float(taille)
-                poid = float(poid)
+                    creer_pokemon = Pokemon(id,nom,type,taille,poid,description,image)
+                    uneListeBoxPokemon.insert(tk.END,f"{creer_pokemon.nom}")
 
-                creer_pokemon = Pokemon(id,nom,type,taille,poid,description,image)
-                uneListeBoxPokemon.insert(tk.END,f"{creer_pokemon.nom}")
+                    # Ajouter un nouvel objet et réécrire le fichier
+                    with open('dictionnairepokemon.pkl', 'rb') as f:
+                        unDictionnairePokemon_chargee = pickle.load(f)
 
-                # Ajouter un nouvel objet et réécrire le fichier
-                with open('dictionnairepokemon.pkl', 'rb') as f:
-                    unDictionnairePokemon_chargee = pickle.load(f)
+                    # Ajouter un nouvel objet
+                    unDictionnairePokemon_chargee[nom] = creer_pokemon
 
-                # Ajouter un nouvel objet
-                unDictionnairePokemon_chargee[nom] = creer_pokemon
-
-                # Sérialiser à nouveau avec le nouvel objet
-                with open('dictionnairepokemon.pkl', 'wb') as f:
-                    pickle.dump(unDictionnairePokemon_chargee, f)
+                    # Sérialiser à nouveau avec le nouvel objet
+                    with open('dictionnairepokemon.pkl', 'wb') as f:
+                        pickle.dump(unDictionnairePokemon_chargee, f)
 
 
-                tkm.showinfo(title="Pokemon ajouté !" , message="Pokemon ajouté avec succès ! ")
+                    tkm.showinfo(title="Pokemon ajouté !" , message="Pokemon ajouté avec succès ! ")
 
-                unInputNom.delete(0,tk.END)
-                uneComboboxType.set("")
-                unInputPoid.delete(0,tk.END)
-                unInputTaille.delete(0,tk.END)
-                unTextAreaInfo.delete("1.0",tk.END)
-                unLabelInputImage.config(text="")
+                    unInputNom.delete(0,tk.END)
+                    uneComboboxType.set("")
+                    unInputPoid.delete(0,tk.END)
+                    unInputTaille.delete(0,tk.END)
+                    unTextAreaInfo.delete("1.0",tk.END)
+                    unLabelInputImage.config(text="")
 
-        except ValueError:
-            tkm.showerror(title="Erreur de type" , message="La taille et le poid doivent etre des nombres à virgule !")
+            except ValueError:
+                tkm.showerror(title="Erreur de type" , message="La taille et le poid doivent etre des nombres à virgule !")
+
 
 def supprimer_pokemon():
 
     indice = uneListeBoxPokemon.curselection()
     key = uneListeBoxPokemon.get(uneListeBoxPokemon.curselection())
 
-    # Charger l'objet sérialisé
     with open('dictionnairepokemon.pkl', 'rb') as f:
         unDictionnairePokemon_chargee = pickle.load(f)
 
     print(unDictionnairePokemon_chargee)
     print(unDictionnairePokemon_chargee[key])
 
-    # Suppression d'un élément (par exemple, la clé 'key_to_delete')
     if key in unDictionnairePokemon_chargee:
-        print("SI")
         del unDictionnairePokemon_chargee[key]
         uneListeBoxPokemon.delete(indice[0],indice[0])
-    else:
-        print("ELSE")
 
-    # Enregistrer l'objet modifié
     with open('dictionnairepokemon.pkl', 'wb') as f:
         pickle.dump(unDictionnairePokemon_chargee, f)
-
 
 
 def remplir_listbox():
@@ -173,7 +166,6 @@ def afficher_info_pokemon(event):
 unPokedex = tk.Tk()
 unPokedex.title("Pokedex")
 unPokedex.config(background="white")
-center_window(unPokedex)
 unPokedex.rowconfigure([0,1,2],weight=1)
 unPokedex.columnconfigure([0, 1, 2],weight=1)
 
@@ -237,7 +229,7 @@ uneListeBoxPokemon.grid(row=0, column=0,padx=50,pady=30,sticky="we")
 remplir_listbox()
 uneListeBoxPokemon.bind("<<ListboxSelect>>", afficher_info_pokemon)
 
-unBoutonSupprimer = tk.Button(uneFrameList,text="supprimer_pokemon" , command=supprimer_pokemon)
+unBoutonSupprimer = tk.Button(uneFrameList,text="Supprimer" , command=supprimer_pokemon)
 unBoutonSupprimer.grid(row=1,column=0)
 
 # Frame Info du POKEMON

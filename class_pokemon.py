@@ -1,6 +1,6 @@
 class Pokemon:
 
-    def __init__(self,pId,pNom,pType,pTaille,pPoid,pDescription,pUrlImage=0):
+    def __init__(self,pId,pNom,pType,pTaille,pPoid,pDescription,pUrlImage):
 
         self.id=pId
         self.nom = pNom
